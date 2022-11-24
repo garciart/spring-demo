@@ -1,4 +1,4 @@
-# Spring Boot and DynamoDB Demo
+# Spring Boot and DynamoDB Demo (Windows)
 
 -----
 
@@ -8,21 +8,17 @@
 
 Requirement:
 
+- Windows
 - An Amazon Web Services (AWS) Developer account
 - Java Development Kit (JDK), version 17
 
-```
-sudo yum install java-17-openjdk-devel
-javac -version
-```
-
 Create the project:
 
-**NOTE** - If you have a development directory in your home directory, use that instead (e.g., ```mkdir ~/Workspace/spring-demo```, etc.).
+**NOTE** - If you have a development directory in your home directory, use that instead (e.g., ```mkdir --p ~/source/repos/spring-demo```, etc.).
 
 ```
-mkdir ~/flask-demo
-cd ~/flask-demo
+mkdir ~/spring-demo
+cd ~/spring-demo
 git init
 git branch -m main
 touch README.md
@@ -31,6 +27,99 @@ wget https://raw.githubusercontent.com/github/gitignore/main/Maven.gitignore -a 
 git add --all :/
 git commit -m "Initial commit."
 git checkout -b devel
+```
+
+Configure AWS access:
+
+```
+msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
+aws configure
+```
+
+Enter the requested information when prompted:
+
+```
+AWS Access Key ID [None]: XXXXXXXXXXXXXXXXXXXX
+AWS Secret Access Key [None]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Default region name [None]: us-east-1
+Default output format [None]: json
+```
+
+This will create an AWS credentials profile file on your local system:
+
+- Linux: ```~/.aws/credentials```
+- Windows: ```C:\Users\USERNAME\.aws\credentials```
+
+>**NOTE** - While you can also hard-code your credentials in the **application.properties** file (located at ```~/spring-demo/springdemo/src/main/resources/application.properties```), [it is not recommended](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_hardcoded.html).
+
+Create a directory to hold the data scripts:
+
+```
+mkdir -p ~/spring-demo/data_scripts
+cd ~/spring-demo/data_scripts
+```
+
+In that directory, create scripts and populate the DynamoDB database:
+
+**NOTE** - This will create only one record. For multiple records, you can download **create-table-meds.json**, and both **batch-write-items-meds-25.json** and **batch-write-items-meds-50.json**, from the repository instead. Remember, [AWS only accepts 25 item put or delete operations per batch.](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html "BatchWriteItem")
+
+```
+echo '{ "TableName": "medications", "KeySchema": [ { "KeyType": "HASH", "AttributeName": "generic_name" } ], "AttributeDefinitions": [ { "AttributeName": "generic_name", "AttributeType": "S" } ], "BillingMode": "PAY_PER_REQUEST" }' > create-table-meds.json
+echo '{ "medications": [ { "PutRequest": { "Item": { "generic_name": { "S": "ACYCLOVIR" }, "brand_name": { "S": "ZOVIRAX" }, "action": { "S": "ANTIVIRAL" }, "conditions": { "SS": [ "HERPES", "COLD SORES" ] }, "schedule": { "N": "0" }, "blood_thinner": { "S": "FALSE" }, "side_effects": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "interactions": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "warnings": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "link": { "S": "https://medlineplus.gov/druginfo/meds/a681045.html" } } } } ] }' > batch-write-items-meds.json
+chmod 666 *.json
+aws dynamodb create-table --cli-input-json file://create-table-meds.json
+aws dynamodb batch-write-item --request-items file://batch-write-items-meds.json
+```
+
+**OUTPUT:**
+
+```
+> aws dynamodb create-table --cli-input-json file://create-table-meds.json
+{
+    "TableDescription": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "generic_name",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "medications",
+        "KeySchema": [
+            {
+                "AttributeName": "generic_name",
+                "KeyType": "HASH"
+            }
+        ],
+        "TableStatus": "CREATING",
+        "CreationDateTime": 1667847213.294,
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 0,
+            "WriteCapacityUnits": 0
+        },
+        "TableSizeBytes": 0,
+        "ItemCount": 0,
+        "TableArn": "arn:aws:dynamodb:us-east-1:XXXXXXXXXXXX:table/medications",
+        "TableId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+        "BillingModeSummary": {
+            "BillingMode": "PAY_PER_REQUEST"
+        }
+    }
+}
+> aws dynamodb batch-write-item --request-items file://batch-write-items-meds-25.json
+{
+    "UnprocessedItems": {}
+}
+```
+
+Continue to add items using **batch-write-item**. If DynamoDB returns any unprocessed items, check your JSON script and try again.
+
+Save your work and update your requirements:
+
+```
+cd ~/spring-demo
+git add --all :/
+git commit -m "Created database in AWS DynamoDB."
 ```
 
 Visit https://start.spring.io/ to generate your Spring Boot project. The settings will be:
@@ -85,21 +174,17 @@ You will need additional dependencies. Using an editor of your choice, open **po
 </dependency>
 ```
 
-If you have not done so previously, create an AWS credentials profile file on your local system:
 
-- Linux: ```~/.aws/credentials```
-- Windows: ```C:\Users\USERNAME\.aws\credentials```
 
-Add the following lines to the file:
 
-```
-[default]
-aws_access_key_id = your_access_key_id
-aws_secret_access_key = your_secret_access_key
-region = your_aws_region
-```
 
->**NOTE** - while you can also hard-code your credentials in the **application.properties** file (located at ```~/spring-demo/springdemo/src/main/resources/application.properties```), [it is not recommended](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_hardcoded.html).
+
+
+
+
+
+
+
 
 Add a configuration directory and class to your project:
 
