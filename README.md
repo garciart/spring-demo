@@ -6,8 +6,6 @@
 
 ## Steps:
 
------
-
 Requirement:
 
 - Windows 10+ with PowerShell (Tested on Windows 11 with PS 5.1)
@@ -16,27 +14,27 @@ Requirement:
 
 Create the project:
 
-Visit https://start.spring.io/ to generate your Spring Boot project. The settings will be:
+Visit [https://start.spring.io/](https://start.spring.io/ "Spring Initializr") to generate your Spring Boot project. The settings will be:
 
-Project: Maven Project
-Language: Java
-Spring Boot: The most recent stable version (i.e., not a release candidate (RC) or snapshot))
-Project Metadata:
-- Group: com.rgcoding
-- Artifact: springdemo
-- Name: springdemo
-- Description: Demo project for Spring Boot and DynamoDB
-- Package name: com.rgcoding.springdemo
-- Packaging: Jar
-- Java: 17
-Dependencies: Add the following dependencies:
-- Lombok
-- Spring Web
-- Thymeleaf
+- **Project:** Maven Project
+- **Language:** Java
+- **Spring Boot:** The most recent stable version (i.e., not a release candidate (RC) or snapshot))
+- **Project Metadata:**
+    - **Group:** com.rgcoding
+    - **Artifact:** springdemo
+    - **Name:** springdemo
+    - **Description:** Demo project for Spring Boot and DynamoDB
+    - **Package name:** com.rgcoding.springdemo
+    - **Packaging:** Jar
+    - **Java:** 17
+- **Dependencies:** Add the following dependencies:
+    - Lombok
+    - Spring Web
+    - Thymeleaf
 
 ![Spring Initializr Page](images/01-spring-initializr.png "Spring Initializr Page")
 
-Click on **GENERATE** to create the *springdemo.zip* file.
+Click on **GENERATE** to create and download the **springdemo.zip** file.
 
 Unzip the file into a your development directory:
 
@@ -59,12 +57,13 @@ git commit -m "Initial commit."
 git checkout -b devel
 ```
 
-You will need additional dependencies. Using an editor of your choice, open **pom.xml** and, within the *<dependencies>* node, add the **AWS SDK For Java** (you can visit https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk to get the latest version):
+You will need additional dependencies. Using an editor of your choice, open **pom.xml** and, within the *<dependencies>* node, add the **AWS SDK For Java** (you can visit [https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk](https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk "Maven Repository") to get the latest version):
 
 ```
 <dependency>
-	<groupId>com.amazonaws</groupId>
-	<artifactId>aws-java-sdk</artifactId>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk</artifactId>
+    <version>1.12.349</version>
 </dependency>
 ```
 
@@ -86,12 +85,11 @@ In that directory, create scripts and populate the DynamoDB database:
 ```
 echo '{ "TableName": "medications", "KeySchema": [ { "KeyType": "HASH", "AttributeName": "generic_name" } ], "AttributeDefinitions": [ { "AttributeName": "generic_name", "AttributeType": "S" } ], "BillingMode": "PAY_PER_REQUEST" }' > create-table-meds.json
 echo '{ "medications": [ { "PutRequest": { "Item": { "generic_name": { "S": "ACYCLOVIR" }, "brand_name": { "S": "ZOVIRAX" }, "action": { "S": "ANTIVIRAL" }, "conditions": { "SS": [ "HERPES", "COLD SORES" ] }, "schedule": { "N": "0" }, "blood_thinner": { "S": "FALSE" }, "side_effects": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "interactions": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "warnings": { "S": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }, "link": { "S": "https://medlineplus.gov/druginfo/meds/a681045.html" } } } } ] }' > batch-write-items-meds.json
-chmod 666 *.json
 aws dynamodb create-table --cli-input-json file://create-table-meds.json
 aws dynamodb batch-write-item --request-items file://batch-write-items-meds.json
 ```
 
-**OUTPUT:**
+**Output:**
 
 ```
 > aws dynamodb create-table --cli-input-json file://create-table-meds.json
@@ -141,6 +139,14 @@ cd ~/springdemo
 git add --all :/
 git commit -m "Created database in AWS DynamoDB."
 ```
+
+Naviagte to main application directory:
+
+```
+cd ~\springdemo\src\main\java\com\rgcoding\springdemo
+```
+
+Using an editor of your choice, create a class named **DynamoDBLink.java** and add the following code:
 
 
 
