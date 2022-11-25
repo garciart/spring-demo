@@ -1,5 +1,7 @@
 # Spring Boot and DynamoDB Demo (Windows)
 
+>**NOTE** - For a similar project, using AWS, Linux, Python, and Flask, see https://github.com/garciart/flask-demo.
+
 -----
 
 ## Steps:
@@ -8,60 +10,78 @@
 
 Requirement:
 
-- Windows
+- Windows 10+ with PowerShell (Tested on Windows 11 with PS 5.1)
 - An Amazon Web Services (AWS) Developer account
 - Java Development Kit (JDK), version 17
 
 Create the project:
 
-**NOTE** - If you have a development directory in your home directory, use that instead (e.g., ```mkdir --p ~/source/repos/spring-demo```, etc.).
+Visit https://start.spring.io/ to generate your Spring Boot project. The settings will be:
+
+Project: Maven Project
+Language: Java
+Spring Boot: The most recent stable version (i.e., not a release candidate (RC) or snapshot))
+Project Metadata:
+- Group: com.rgcoding
+- Artifact: springdemo
+- Name: springdemo
+- Description: Demo project for Spring Boot and DynamoDB
+- Package name: com.rgcoding.springdemo
+- Packaging: Jar
+- Java: 17
+Dependencies: Add the following dependencies:
+- Lombok
+- Spring Web
+- Thymeleaf
+
+![Spring Initializr Page](images/01-spring-initializr.png "Spring Initializr Page")
+
+Click on **GENERATE** to create the *springdemo.zip* file.
+
+Unzip the file into a your development directory:
+
+**NOTE** - If you have a development subdirectory in your home directory, use that instead (e.g., ```mkdir --p ~/source/repos/springdemo```, etc.).
 
 ```
-mkdir ~/spring-demo
-cd ~/spring-demo
+Expand-Archive ~/Downloads/springdemo.zip -d ~/
+```
+
+Initialize the project:
+
+```
+cd ~/springdemo
 git init
 git branch -m main
-touch README.md
-wget https://raw.githubusercontent.com/github/gitignore/main/Java.gitignore -o .gitignore
-wget https://raw.githubusercontent.com/github/gitignore/main/Maven.gitignore -a .gitignore
+# Spring Initializr created a .gitignore file; append the Spring.io .gitignore to it
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/spring-projects/spring-boot/main/.gitignore | Add-Content .gitignore
 git add --all :/
 git commit -m "Initial commit."
 git checkout -b devel
 ```
 
-Configure AWS access:
+You will need additional dependencies. Using an editor of your choice, open **pom.xml** and, within the *<dependencies>* node, add the **AWS SDK For Java** (you can visit https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk to get the latest version):
 
 ```
-msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
-aws configure
+<dependency>
+	<groupId>com.amazonaws</groupId>
+	<artifactId>aws-java-sdk</artifactId>
+</dependency>
 ```
-
-Enter the requested information when prompted:
-
-```
-AWS Access Key ID [None]: XXXXXXXXXXXXXXXXXXXX
-AWS Secret Access Key [None]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-Default region name [None]: us-east-1
-Default output format [None]: json
-```
-
-This will create an AWS credentials profile file on your local system:
-
-- Linux: ```~/.aws/credentials```
-- Windows: ```C:\Users\USERNAME\.aws\credentials```
-
->**NOTE** - While you can also hard-code your credentials in the **application.properties** file (located at ```~/spring-demo/springdemo/src/main/resources/application.properties```), [it is not recommended](https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_hardcoded.html).
 
 Create a directory to hold the data scripts:
 
 ```
-mkdir -p ~/spring-demo/data_scripts
-cd ~/spring-demo/data_scripts
+mkdir -p ~/springdemo/data_scripts
+cd ~/springdemo/data_scripts
 ```
 
 In that directory, create scripts and populate the DynamoDB database:
 
-**NOTE** - This will create only one record. For multiple records, you can download **create-table-meds.json**, and both **batch-write-items-meds-25.json** and **batch-write-items-meds-50.json**, from the repository instead. Remember, [AWS only accepts 25 item put or delete operations per batch.](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html "BatchWriteItem")
+>**NOTE** - This will create only one record. For multiple records, you can download **create-table-meds.json**, and both **batch-write-items-meds-25.json** and **batch-write-items-meds-50.json**, from the repository instead. Remember, [AWS only accepts 25 item put or delete operations per batch.](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html "BatchWriteItem")
+>
+>- ```Invoke-WebRequest -Uri https://raw.githubusercontent.com/garciart/springdemo/main/data_scripts/create-table-meds.json -OutFile ~/eclipse-workspace/springdemo/data_scripts/create-table-meds.json```
+>- ```Invoke-WebRequest -Uri https://raw.githubusercontent.com/garciart/springdemo/main/data_scripts/batch-write-items-meds-25.json -OutFile ~/eclipse-workspace/springdemo/data_scripts/batch-write-items-meds-25.json```
+>- ```Invoke-WebRequest -Uri https://raw.githubusercontent.com/garciart/springdemo/main/data_scripts/batch-write-items-meds-50.json -OutFile ~/eclipse-workspace/springdemo/data_scripts/batch-write-items-meds-50.json```
 
 ```
 echo '{ "TableName": "medications", "KeySchema": [ { "KeyType": "HASH", "AttributeName": "generic_name" } ], "AttributeDefinitions": [ { "AttributeName": "generic_name", "AttributeType": "S" } ], "BillingMode": "PAY_PER_REQUEST" }' > create-table-meds.json
@@ -117,62 +137,12 @@ Continue to add items using **batch-write-item**. If DynamoDB returns any unproc
 Save your work and update your requirements:
 
 ```
-cd ~/spring-demo
+cd ~/springdemo
 git add --all :/
 git commit -m "Created database in AWS DynamoDB."
 ```
 
-Visit https://start.spring.io/ to generate your Spring Boot project. The settings will be:
 
-Project: Maven Project
-Language: Java
-Spring Boot: 2.7.5 (or the most recent stable version (i.e., not a RC or snapshot))
-Project Metadata:
-- Group: com.qmr
-- Artifact: springdemo
-- Name: springdemo
-- Description: Spring Boot and DynamoDB Demo
-- Package name: com.qmr.springdemo
-- Packaging: Jar
-- Java: 17
-Dependencies: Add the following dependencies:
-- Lombok
-- Spring Web
-- Thymeleaf
-
-![Spring Initializr Page](images/01-spring-initializr.png "Spring Initializr Page")
-
-Click on **GENERATE** to create the *springdemo.zip* file.
-
-Unzip the file into a directory of your choosing:
-
-**NOTE** - If you have a development directory in your home directory, use that instead (e.g., ```mkdir -p ~/Workspace/spring-demo```, etc.).
-
-```
-unzip ~/Downloads/springdemo.zip -d ~/spring-demo
-```
-
-Initialize the project:
-
-```
-cd ~/spring-demo
-git init
-git branch -m main
-wget https://github.com/spring-projects/spring-boot/blob/main/.gitignore --output-document=.gitignore
-git add --all :/
-git commit -m "Initial commit."
-git checkout -b devel
-```
-
-You will need additional dependencies. Using an editor of your choice, open **pom.xml** and, within the *<dependencies>* node, add the **AWS SDK For Java** (you can visit https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk to get the latest version):
-
-```
-<dependency>
-	<groupId>com.amazonaws</groupId>
-	<artifactId>aws-java-sdk</artifactId>
-	<version>1.12.337</version>
-</dependency>
-```
 
 
 
@@ -189,8 +159,8 @@ You will need additional dependencies. Using an editor of your choice, open **po
 Add a configuration directory and class to your project:
 
 ```
-mkdir - p ~/spring-demo/springdemo/src/main/java/com/qmr/springdemo/configuration
-touch ~/spring-demo/springdemo/src/main/java/com/qmr/springdemo/configuration/DynamoDBConfig.java
+mkdir - p ~/springdemo/springdemo/src/main/java/com/qmr/springdemo/configuration
+touch ~/springdemo/springdemo/src/main/java/com/qmr/springdemo/configuration/DynamoDBConfig.java
 ```
 
 Using an editor of your choice, open **DynamoDBConfig.java** and add the following code:
