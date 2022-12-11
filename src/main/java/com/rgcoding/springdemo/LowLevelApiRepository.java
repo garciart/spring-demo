@@ -19,40 +19,51 @@ import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 
-public class DynamoDBLink {
+public class LowLevelApiRepository {
     private AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
     private DynamoDB dynamoDB = new DynamoDB(client);
     private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-    private String tableName = "";
+    private String tableName = "medications";
 
     /**
      * Initializes the DynamoDBlink class
      * 
      * @param tableName The DynamoDB table to use.
      */
-    public DynamoDBLink(String tableName) {
+    public LowLevelApiRepository() {
+    }
+
+    /**
+     * Initializes the DynamoDBlink class
+     * 
+     * @param tableName The DynamoDB table to use.
+     */
+    public LowLevelApiRepository(String tableName) {
         this.tableName = tableName;
     }
 
     /**
      * Method to create an item in the DynamoDB database table.
      * 
-     * @param genericName The generic name of the medication; also the partition key
-     * @param brandName The brand name of the medication
-     * @param action The medication's action
-     * @param conditions The conditions associated with the medication
+     * @param genericName  The generic name of the medication; also the partition key
+     * @param brandName    The brand name of the medication
+     * @param action       The medication's action
+     * @param conditions   The conditions associated with the medication
      * @param bloodThinner If the medication is a blood thinner
-     * @param schedule The DEA restrictions of the medication
-     * @param warnings The warnings associated with the medication
+     * @param schedule     The DEA restrictions of the medication
+     * @param warnings     The warnings associated with the medication
      * @param interactions The interactions associated with the medication
-     * @param sideEffects The side effects associated with the medication
-     * @param link The link to the medlineplus.gov for more information about the medication
+     * @param sideEffects  The side effects associated with the medication
+     * @param link         The link to the medlineplus.gov for more information about the medication
      * @return The json representation of the medication
      */
-    public Item createItem(String genericName, String brandName, String action, Set<String> conditions,
-            boolean bloodThinner, int schedule, String warnings, String interactions, String sideEffects, String link) {
+    public Item createItem( // NOSONAR
+            String genericName, String brandName, String action, Set<String> conditions, boolean bloodThinner,
+            int schedule, String warnings, String interactions, String sideEffects, String link) {
         Item item = null;
         try {
             Table table = dynamoDB.getTable(tableName);
@@ -82,10 +93,27 @@ public class DynamoDBLink {
     }
 
     /**
-     * Method to retrieve an individual item.
+     * Method to retrieve all items from the DynamoDB database table.
+     * 
+     * @return The list of all the medications in the database in json format
+     */
+    public ScanResult retrieveAllItems() {
+        ScanResult result = null;
+        try {
+            ScanRequest scanRequest = new ScanRequest().withTableName(tableName);
+            result = client.scan(scanRequest);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,
+                    (String.format("Error: Could not retrieve items from '%s': %s", tableName, e.getMessage())));
+        }
+        return result;
+    }
+
+    /**
+     * Method to retrieve an individual item from the DynamoDB database table.
      * 
      * @param genericName The generic name of the medication; also the partition key
-     * @return item The json representation of the medication
+     * @return The json representation of the medication
      */
     public Item retrieveItemByGenericName(String genericName) {
         Item item = null;
@@ -102,20 +130,21 @@ public class DynamoDBLink {
     /**
      * Method to update an item in the DynamoDB database table.
      * 
-     * @param genericName The generic name of the medication; also the partition key
-     * @param brandName The brand name of the medication
-     * @param action The medication's action
-     * @param conditions The conditions associated with the medication
+     * @param genericName  The generic name of the medication; also the partition key
+     * @param brandName    The brand name of the medication
+     * @param action       The medication's action
+     * @param conditions   The conditions associated with the medication
      * @param bloodThinner If the medication is a blood thinner
-     * @param schedule The DEA restrictions of the medication
-     * @param warnings The warnings associated with the medication
+     * @param schedule     The DEA restrictions of the medication
+     * @param warnings     The warnings associated with the medication
      * @param interactions The interactions associated with the medication
-     * @param sideEffects The side effects associated with the medication
-     * @param link The link to the medlineplus.gov for more information about the medication
+     * @param sideEffects  The side effects associated with the medication
+     * @param link         The link to the medlineplus.gov for more information about the medication
      * @return The json representation of the medication
      */
-    public Item updateItemByGenericName(String genericName, String brandName, String action, Set<String> conditions,
-            boolean bloodThinner, int schedule, String warnings, String interactions, String sideEffects, String link) {
+    public Item updateItemByGenericName( // NOSONAR
+            String genericName, String brandName, String action, Set<String> conditions, boolean bloodThinner,
+            int schedule, String warnings, String interactions, String sideEffects, String link) {
         Item item = new Item();
         try {
             Table table = dynamoDB.getTable(tableName);
@@ -145,7 +174,7 @@ public class DynamoDBLink {
     }
 
     /**
-     * Method to delete an item in the DynamoDB database table.
+     * Method to delete an item from the DynamoDB database table.
      * 
      * @param genericName The generic name of the medication; also the partition key
      * @return The json representation of the medication

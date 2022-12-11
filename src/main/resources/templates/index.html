@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+<meta charset="UTF-8">
+<title>Index Test</title>
+</head>
+<body>
+	<div layout:fragment="content">
+		<h2>Medications</h2>
+		<table>
+			<caption>Medications</caption>
+			<tr>
+				<th>Generic Name</th>
+				<th>Brand Name</th>
+			</tr>
+			<tr th:each="medication : ${medications}">
+				<td th:text="${medication.genericName}"></td>
+				<td th:text="${medication.brandName}"></td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
