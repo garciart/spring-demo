@@ -1,24 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{base}">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Index Test</title>
+  <title>QMR</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
 </head>
 <body>
-	<div layout:fragment="content">
-		<h2>Medications</h2>
-		<table>
-			<caption>Medications</caption>
-			<tr>
-				<th>Generic Name</th>
-				<th>Brand Name</th>
-			</tr>
-			<tr th:each="medication : ${medications}">
-				<td th:text="${medication.genericName}"></td>
-				<td th:text="${medication.brandName}"></td>
-			</tr>
-		</table>
-	</div>
+  <h1>Welcome to the Quick Medication Reference Spring Boot Demo</h1>
 </body>
 </html>
